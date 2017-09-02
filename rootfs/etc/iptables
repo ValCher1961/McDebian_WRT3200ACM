@@ -1,0 +1,122 @@
+#!/bin/bash
+#
+echo "1" > /proc/sys/net/ipv4/ip_dynaddr
+echo "1" > /proc/sys/net/ipv4/ip_forward
+
+ modprobe iptable_nat
+ modprobe br_netfilter
+# modprobe ip_gre
+
+# modprobe nf_nat_proto_gre
+ modprobe ip_nat_ftp
+# modprobe ip_nat_tftp
+# modprobe ip_nat_sip
+# modprobe ip_nat_irc
+# modprobe ip_nat_pptp
+
+ modprobe ip_conntrack_ftp
+ modprobe nf_conntrack
+# modprobe ip_conntrack_tftp
+# modprobe ip_conntrack_sip
+# modprobe ip_conntrack_irc
+# modprobe ip_conntrack_pptp
+
+#
+WAN=wan
+WAN_IP=$(ifconfig wan |sed -n '/inet addr:/s/^[^:]*:\([0-9\.]*\).*/\1/gp')
+
+LAN=br-lan
+LAN_IP=$(ifconfig br-lan |sed -n '/inet addr:/s/^[^:]*:\([0-9\.]*\).*/\1/gp')
+LAN_RG=$LAN_IP"/24"
+
+TUN=tun0
+TUN_IP=$(ifconfig tun0 |sed -n '/inet addr:/s/^[^:]*:\([0-9\.]*\).*/\1/gp')
+TUN_RG=$TUN_IP"/24"
+
+NAS_IP=192.168.1.100
+
+#
+iptables -F
+iptables -F -t nat
+iptables -F -t mangle
+iptables -X
+iptables -t nat -X
+iptables -t mangle -X
+
+#
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+# loopback
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -i $LAN -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+iptables -A OUTPUT -o $LAN -j ACCEPT
+
+#ESTABLISHED
+iptables -A INPUT -p all -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p all -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -p all -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+#iptables -A FORWARD -i $WAN -o $TUN -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+#MTU
+iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+
+#
+iptables -A PREROUTING -t raw -m rpfilter --invert -j DROP
+#ip6tables -A PREROUTING -t raw -m rpfilter --invert -j DROP
+iptables -A INPUT --protocol tcp --dport 1194 -j ACCEPT
+
+#INVALID
+iptables -A INPUT -m state --state INVALID -j DROP
+iptables -A FORWARD -m state --state INVALID -j DROP
+iptables -A INPUT -p tcp --tcp-flags ALL NONE -j DROP
+#
+iptables -A INPUT -p tcp ! --syn -m state --state NEW -j DROP
+iptables -A OUTPUT -p tcp ! --syn -m state --state NEW -j DROP
+
+#
+iptables -A FORWARD -s $LAN_RG -j ACCEPT
+iptables -A FORWARD -s $TUN_RG -j ACCEPT
+#iptables -A FORWARD -i $LAN -o $WAN -j ACCEPT
+#iptables -A FORWARD -i $TUN -o $WAN -j ACCEPT
+iptables -A FORWARD -i $WAN -o $LAN -j REJECT
+
+#
+iptables -t nat -A POSTROUTING -s $TUN_RG -o $WAN -j MASQUERADE
+iptables -t nat -A POSTROUTING -s $LAN_RG -o $WAN -j MASQUERADE
+
+#
+#iptables -t nat -A POSTROUTING -o $WAN -s $LAN_RG -j MASQUERADE
+
+# Opening and redirection ports on your router for NAS
+
+# PortExt - port external
+# PortInt - port internal
+# Protcl - protocol
+
+PortExt=(6883	6882	443	8081	20	21)
+PortInt=(6882	6883	443	8081	20	21)
+Protcl=(tcp	tcp	tcp	tcp	tcp	tcp)
+
+#
+printf "The open ports for -"\\t$NAS_IP\\n
+printf "PortInt"\\t"PortExt"\\t"Protcl"\\n
+for ((i=0; i<${#PortInt[*]}; i++)); do
+
+iptables -t nat -A PREROUTING -d $WAN_IP -p ${Protcl[$i]} -m ${Protcl[$i]} \
+--dport ${PortExt[$i]} -j DNAT --to-destination $NAS_IP:${PortInt[$i]}
+
+iptables -t nat -A POSTROUTING -d $LAN_IP -p ${Protcl[$i]} -m ${Protcl[$i]} \
+--dport ${PortInt[$i]} -j SNAT --to-source $NAS_IP
+
+iptables -t nat -A OUTPUT -d $WAN_IP -p ${Protcl[$i]} -m ${Protcl[$i]} \
+--dport ${PortExt[$i]} -j DNAT --to-destination $NAS_IP:${PortInt[$i]}
+
+iptables -I FORWARD 1 -i $WAN -o $LAN -d $NAS_IP -p ${Protcl[$i]} -m ${Protcl[$i]} \
+--dport ${PortInt[$i]} -j ACCEPT
+
+printf ${PortInt[$i]}\\t${PortExt[$i]}\\t${Protcl[$i]}\\n
+done
+printf \\n

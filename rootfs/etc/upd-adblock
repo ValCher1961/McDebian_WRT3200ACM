@@ -1,0 +1,44 @@
+#!/bin/bash
+
+DATE=`stat /etc/adblock.blacklist |grep Modify`
+DATE=${DATE:8:10}
+
+if [ $(date '+%Y-%m-%d') = $DATE ]
+	then exit
+fi
+
+echo 255 > /sys/class/leds/rango:amber:wan/brightness
+cd /home/tmp
+i=0
+
+while read line ; do
+addr=$line
+	i=$((i+1))
+	wget $addr --no-check-certificate -O hosts_list.$i
+	sed -i 's/0.0.0.0/127.0.0.1/' hosts_list.$i
+	sed -i '/127.0.0.1/{x;p;x;G;}' hosts_list.$i
+	sed -i 's/\t/ /g' hosts_list.$i
+	sed -i 's/  / /g' hosts_list.$i
+done < /etc/adblock.addr
+
+in="hosts_list.*" && out="/etc/adblock.blacklist" && host='127.0.0.1'
+
+echo "#/ip dns static" > $out && grep '127.0.0.1 ' $in \
+	| grep -v '^#' \
+        | cut -d' ' -f 2 \
+        | grep . \
+	| tr -d '\r' \
+	| sort -u \
+	| sed '$!N; /^\(.*\)\n\1$/!P; D' \
+	| sed "s/^/$host /" >> $out && rm -f $in
+
+while read line ; do
+	sed "/$line/d" $out > "/etc/adblock.tmp"
+	mv /etc/adblock.tmp $out
+done < /etc/adblock.whitelist
+rm -f /etc/adblock.tmp
+
+wc -l $out
+/etc/init.d/dnsmasq restart
+
+echo 0 > /sys/class/leds/rango:amber:wan/brightness

@@ -1,0 +1,21 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+depmod -a
+
+echo 1 > /sys/class/leds/rango:white:usb2/ports/usb1-port1
+echo 1 > /sys/class/leds/rango:white:usb3_1/ports/usb2-port1
+echo 16384 > /proc/sys/vm/min_free_kbytes
+sleep 20 ; /etc/upd-adblock #; /etc/upd-oinkmaster
+
+exit 0

@@ -1,0 +1,54 @@
+diff -Naur a/arch/arm/boot/dts/armada-385-linksys.dtsi b/arch/arm/boot/dts/armada-385-linksys.dtsi
+--- a/arch/arm/boot/dts/armada-385-linksys.dtsi	2017-07-16 13:44:18.752481159 +0300
++++ b/arch/arm/boot/dts/armada-385-linksys.dtsi	2017-07-16 12:01:32.000000000 +0300
+@@ -161,10 +161,11 @@
+ 		reg = <0x4c>;
+ 	};
+ 
+-	expander0: pca9635@68 {
++	expander0: tlc59116@68 {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-		compatible = "nxp,pca9635";
++		#gpio-cells = <2>;
++		compatible = "ti,tlc59116";
+ 		reg = <0x68>;
+ 	};
+ };
+diff -Naur a/arch/arm/boot/dts/armada-385-linksys-rango.dts b/arch/arm/boot/dts/armada-385-linksys-rango.dts
+--- a/arch/arm/boot/dts/armada-385-linksys-rango.dts	2017-07-16 02:52:16.315805725 +0300
++++ b/arch/arm/boot/dts/armada-385-linksys-rango.dts	2017-07-16 03:52:19.000000000 +0300
+@@ -46,6 +46,19 @@
+ 	model = "Linksys WRT3200ACM";
+ 	compatible = "linksys,rango", "linksys,armada385", "marvell,armada385",
+ 		     "marvell,armada380";
++
++	pwm_fan {
++		/* SUNON HA4010V4-0000-C99 */
++		compatible = "pwm-fan";
++		pwms = <&gpio0 18 4000 0>;
++	};
++};
++
++&pinctrl {
++	gpio_fan_pin: gpio-fan-pin {
++		marvell,pins = "mpp18";
++		marvell,function = "gpio";
++	};
+ };
+ 
+ &expander0 {
+@@ -62,11 +75,13 @@
+ 	usb2@5 {
+ 		label = "rango:white:usb2";
+ 		reg = <0x5>;
++		linux,default-trigger = "usbport";
+ 	};
+ 
+ 	usb3_1@6 {
+ 		label = "rango:white:usb3_1";
+ 		reg = <0x6>;
++		linux,default-trigger = "usbport";
+ 	};
+ 
+ 	usb3_2@7 {

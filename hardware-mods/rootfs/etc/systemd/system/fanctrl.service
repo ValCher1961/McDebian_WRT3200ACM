@@ -1,0 +1,13 @@
+[Unit]
+Description=wrt3200acm Fan Control
+After=networking.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/fanctrl
+ExecStop=/usr/bin/pkill fanctrl
+PrivateTmp=true
+NonBlocking=yes
+
+[Install]
+WantedBy=multi-user.target

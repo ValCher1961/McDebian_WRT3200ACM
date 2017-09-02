@@ -1,0 +1,4 @@
+# UNCONFIGURED FSTAB FOR BASE SYSTEM
+/dev/sda1	/	ext4	rw,sync	0	0
+/dev/sda3	/home	ext4	rw	0	0
+/dev/sda2	none	swap	sw,pri=3	0	0

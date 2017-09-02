@@ -1,0 +1,89 @@
+#!/bin/bash
+
+############ The task of temperature
+Temp_Task=75118		# 75°C CPU  (65316; 70357; 75118; .... )
+Temp_WIFI=70379		# 70°C WIFI
+Temp_DDR=60000		# 60°C DDR
+#Temp_Switch=70000	# 70°C Switch
+
+Temp_WIFI=$((Temp_Task-Temp_WIFI))
+Temp_DDR=$((Temp_Task-Temp_DDR))
+#Temp_Switch=$((Temp_Task-Temp_Switch))
+
+############ The task of factors of a regulator
+K_Prop=300	# 50...720
+K_Dif=90	# 10...100
+K_FanOn=40	# The smallest value at the output pwm1 (gpio 18) control in which the fan is spinning.
+		# You should choose a small margin +3...+5
+Temp_Previous=$Temp_Task
+
+############
+while true ; do
+Temp_Current=0
+T[1]=$((Temp_DDR+`cat /sys/class/hwmon/hwmon1/temp1_input`))
+T[2]=$((Temp_WIFI+`cat /sys/class/hwmon/hwmon1/temp2_input`))
+#T[3]=$((Temp_Switch+`cat /sys/class/hwmon/hwmon3/temp1_input`))
+T[3]=`cat /sys/class/hwmon/hwmon2/temp1_input`
+
+
+############ Choice of the greatest temperature
+for ((i=1; i<${#T[*]}; i++)); do
+T=$((T[$i]))
+
+	if [ $T -gt $Temp_Current ]
+		then
+		Temp_Current=$T
+	fi
+#printf  $T\\t
+done
+
+############ Proportional part
+Error=$((Temp_Current-Temp_Task))
+FctrProp=$((Error/K_Prop))
+
+############ Differential part
+FctrDif=$(((Temp_Current-Temp_Previous)/K_Dif))
+
+############ Reducing regulatory factor in the area of the set temperature ±0.476°C (476)
+	if [ $Error -ge -476 -a $Error -le 476 ]
+		then
+		#FctrProp=$((FctrProp/4))
+		FctrDif=$((FctrDif/3))
+	fi
+
+FanCtrl=$((FctrProp + FctrDif + FanCtrl))
+
+########### Setting the working range of the fan
+	if [ $FanCtrl -gt 255 ]
+		then
+                FanCtrl=255
+	fi
+	if [ $FanCtrl -lt $K_FanOn ]
+		then
+		Out_FanCtrl=0
+		else
+		Out_FanCtrl=$FanCtrl
+	fi
+	if [ $FanCtrl -lt $((K_FanOn-4)) ]
+		then
+		FanCtrl=$((K_FanOn-4))
+	fi
+	if [ $FanCtrl -ge 255 -a $Temp_Current -ge $((Temp_Task+5000)) ]
+		then
+		echo "`date`: Dangerous Temperature" >> /root/overheat.log
+		echo `sensors|grep +` >> /root/overheat.log
+	fi
+
+########### Out fan
+echo $Out_FanCtrl > /sys/class/hwmon/hwmon0/pwm1
+echo $Out_FanCtrl > /sys/class/leds/rango:amber:wps/brightness
+
+###########
+#cpu=`ps aux | awk '{s += $3} END {print s}'`
+#printf "%s	%s	%s	%s	%s	%s\n" $FctrProp $FctrDif $Out_FanCtrl $Temp_Current $cpu
+##########
+Temp_Previous=$Temp_Current
+FanCtrl_Previous=$FanCtrl
+#Error_Previous=$Error
+sleep 10
+done
