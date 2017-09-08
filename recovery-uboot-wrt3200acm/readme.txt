@@ -36,45 +36,6 @@ reboot. To log in to U-boot, press any key on the PC during the
     nand write 8000000 0 f3000
     reset
 
-
-/ "kwboot" taken here - 
-7. Execute the command-
-    sudo ./kwboot -f -t /dev/ttyUSB<N> -b mtdblock0 -B 115200 -p
-and turn on the power WRT3200ACM.
-After the power is on the WRT3200ACM and before the load starts,
-it may take more than one minute to complete.
-When the download is finished, the WRT3200ACM will automatically
-reboot. To log in to U-boot, press any key on the PC during the
-3 second him wait.
-
-8. In the terminal, follow these commands:
-    setenv ipaddr 192.168.1.1; setenv serverip 192.168.1.99
-    nand device 0
-    tftp 8000000 mtdblock0
-    nand erase.spread 0 200000
-    nand write 8000000 0 f3000
-    reset
-
-
-/ "kwboot" taken here - 
-7. Execute the command-
-    sudo ./kwboot -f -t /dev/ttyUSB<N> -b mtdblock0 -B 115200 -p
-and turn on the power WRT3200ACM.
-After the power is on the WRT3200ACM and before the load starts,
-it may take more than one minute to complete.
-When the download is finished, the WRT3200ACM will automatically
-reboot. To log in to U-boot, press any key on the PC during the
-3 second him wait.
-
-8. In the terminal, follow these commands:
-    setenv ipaddr 192.168.1.1; setenv serverip 192.168.1.99
-    nand device 0
-    tftp 8000000 mtdblock0
-    nand erase.spread 0 200000
-    nand write 8000000 0 f3000
-    reset
-
-
 / "kwboot" taken here - https://forum.armbian.com/index.php?/topic/4444-solved-kwboot-on-armada-38x/  /
 
 
