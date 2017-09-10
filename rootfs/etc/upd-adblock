@@ -1,16 +1,25 @@
 #!/bin/bash
 
+### Synchronize system date and time
+/etc/init.d/ntp restart
+wait
+
+### Check the validity of the Blacklist base by date
 DATE=`stat /etc/adblock.blacklist |grep Modify`
 DATE=${DATE:8:10}
 
 if [ $(date '+%Y-%m-%d') = $DATE ]
 	then exit
+#	if [ $(date '+%Y-%m-%d') = "1970-01-01" ]
+#		then service ntp restart
+#	fi
 fi
 
 echo 255 > /sys/class/leds/rango:amber:wan/brightness
 cd /home/tmp
-i=0
 
+### Download and create the Blacklist base
+i=0
 while read line ; do
 addr=$line
 	i=$((i+1))
@@ -32,13 +41,15 @@ echo "#/ip dns static" > $out && grep '127.0.0.1 ' $in \
 	| sed '$!N; /^\(.*\)\n\1$/!P; D' \
 	| sed "s/^/$host /" >> $out && rm -f $in
 
+### Removing from Blacklist database the Whitelist data
 while read line ; do
 	sed "/$line/d" $out > "/etc/adblock.tmp"
 	mv /etc/adblock.tmp $out
 done < /etc/adblock.whitelist
 rm -f /etc/adblock.tmp
-
 wc -l $out
+
+### Restart service DNSMASQ
 /etc/init.d/dnsmasq restart
 
 echo 0 > /sys/class/leds/rango:amber:wan/brightness
