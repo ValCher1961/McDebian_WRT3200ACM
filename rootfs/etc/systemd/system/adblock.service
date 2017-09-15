@@ -1,0 +1,13 @@
+[Unit]
+Description=wrt3200acm adblock service
+After=networking.service
+
+[Service]
+Type=simple
+ExecStart=/etc/upd-adblock
+#ExecStop=/usr/bin/pkill fanctrl
+PrivateTmp=true
+NonBlocking=yes
+
+[Install]
+WantedBy=multi-user.target

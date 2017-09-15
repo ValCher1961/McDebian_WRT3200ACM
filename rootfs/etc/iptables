@@ -3,6 +3,7 @@
 echo "1" > /proc/sys/net/ipv4/ip_dynaddr
 echo "1" > /proc/sys/net/ipv4/ip_forward
 
+ modprobe tun
  modprobe iptable_nat
  modprobe br_netfilter
 # modprobe ip_gre
@@ -23,14 +24,14 @@ echo "1" > /proc/sys/net/ipv4/ip_forward
 
 #
 WAN=wan
-WAN_IP=$(ifconfig wan |sed -n '/inet addr:/s/^[^:]*:\([0-9\.]*\).*/\1/gp')
+WAN_IP=$(ip addr show wan |sed -n '/inet /s/^[^.]* \([0-9\.]*\).*/\1/gp')
 
 LAN=br-lan
-LAN_IP=$(ifconfig br-lan |sed -n '/inet addr:/s/^[^:]*:\([0-9\.]*\).*/\1/gp')
+LAN_IP=$(ip addr show br-lan |sed -n '/inet /s/^[^.]* \([0-9\.]*\).*/\1/gp')
 LAN_RG=$LAN_IP"/24"
 
 TUN=tun0
-TUN_IP=$(ifconfig tun0 |sed -n '/inet addr:/s/^[^:]*:\([0-9\.]*\).*/\1/gp')
+TUN_IP=$(ip addr show tun0 |sed -n '/inet /s/^[^.]* \([0-9\.]*\).*/\1/gp')
 TUN_RG=$TUN_IP"/24"
 
 NAS_IP=192.168.1.100
@@ -58,7 +59,6 @@ iptables -A OUTPUT -o $LAN -j ACCEPT
 iptables -A INPUT -p all -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A OUTPUT -p all -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A FORWARD -p all -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
-#iptables -A FORWARD -i $WAN -o $TUN -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 #MTU
 iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
@@ -77,18 +77,14 @@ iptables -A INPUT -p tcp ! --syn -m state --state NEW -j DROP
 iptables -A OUTPUT -p tcp ! --syn -m state --state NEW -j DROP
 
 #
-iptables -A FORWARD -s $LAN_RG -j ACCEPT
-iptables -A FORWARD -s $TUN_RG -j ACCEPT
-#iptables -A FORWARD -i $LAN -o $WAN -j ACCEPT
-#iptables -A FORWARD -i $TUN -o $WAN -j ACCEPT
+#iptables -A FORWARD -s $LAN_RG -j ACCEPT
+#iptables -A FORWARD -s $TUN_RG -j ACCEPT
+iptables -A FORWARD -i $LAN -o $WAN -j ACCEPT
 iptables -A FORWARD -i $WAN -o $LAN -j REJECT
 
 #
-iptables -t nat -A POSTROUTING -s $TUN_RG -o $WAN -j MASQUERADE
-iptables -t nat -A POSTROUTING -s $LAN_RG -o $WAN -j MASQUERADE
-
-#
-#iptables -t nat -A POSTROUTING -o $WAN -s $LAN_RG -j MASQUERADE
+iptables -t nat -A POSTROUTING -o $WAN -s $LAN_RG -j MASQUERADE
+iptables -t nat -A POSTROUTING -o $TUN -s $LAN_RG -j MASQUERADE
 
 # Opening and redirection ports on your router for NAS
 
@@ -96,9 +92,9 @@ iptables -t nat -A POSTROUTING -s $LAN_RG -o $WAN -j MASQUERADE
 # PortInt - port internal
 # Protcl - protocol
 
-PortExt=(6883	6882	443	8081	20	21)
-PortInt=(6882	6883	443	8081	20	21)
-Protcl=(tcp	tcp	tcp	tcp	tcp	tcp)
+PortExt=(6882	6883	443	8081	81	20	21)
+PortInt=(6882	6883	443	8081	81	20	21)
+Protcl=(tcp	tcp	tcp	tcp	tcp	tcp	tcp)
 
 #
 printf "The open ports for -"\\t$NAS_IP\\n

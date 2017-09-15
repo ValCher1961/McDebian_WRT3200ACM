@@ -1,18 +1,37 @@
 #!/bin/bash
 
+# Because WRT3200 does not have real-time clocks, when the router is started,
+# the time and date are set by default from Debian. So in Debian 8 "Jessie",
+# the default date is [1970-01-01], Debian 9 "Stretch"-[2016-11-03]. 
+# Sometimes it happens that the NTP server cannot be synchronized the first time.
+# To determine the relevance of the Adblock base, you must define the current
+# date and compare it to the creation date of the existing base. To do this,
+# you enter several times to synchronize the date.
+
 ### Synchronize system date and time
+i=0
+while [ $i -le 10 ] ; do
 /etc/init.d/ntp restart
-wait
+sleep 10
 
 ### Check the validity of the Blacklist base by date
-DATE=`stat /etc/adblock.blacklist |grep Modify`
-DATE=${DATE:8:10}
+filed=`stat /etc/adblock.blacklist |grep Modify`
+filed=${filed:8:10}		# The date changed that the Adblock database
+debd="2016-11-03"		# Date prior to synchronization with NTP server
+curd=$(date "+%Y-%m-%d")	# Date after attempt to synchronize with NTP server
+i=$((i + 1))
 
-if [ $(date '+%Y-%m-%d') = $DATE ]
-	then exit
-#	if [ $(date '+%Y-%m-%d') = "1970-01-01" ]
-#		then service ntp restart
-#	fi
+if [ "$curd" = "$debd" ]
+	then continue		# Attempting to synchronize with NTP server
+fi
+if [ "$curd" = "$filed" -a "$debd" != "$filed" ]
+	then exit		# adblock.blacklist no update required
+	else break		# adblock.blacklist needs to update base
+fi
+done
+if [ "$curd" = "$debd" ]
+	then exit		# No sync, leave existing base adblock.blacklist
+	else echo		# adblock.blacklist needs to update base
 fi
 
 echo 255 > /sys/class/leds/rango:amber:wan/brightness
@@ -47,8 +66,8 @@ while read line ; do
 	mv /etc/adblock.tmp $out
 done < /etc/adblock.whitelist
 rm -f /etc/adblock.tmp
-wc -l $out
 
+wc -l $out
 ### Restart service DNSMASQ
 /etc/init.d/dnsmasq restart
 
