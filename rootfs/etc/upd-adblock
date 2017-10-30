@@ -2,7 +2,7 @@
 
 # Because WRT3200 does not have real-time clocks, when the router is started,
 # the time and date are set by default from Debian. So in Debian 8 "Jessie",
-# the default date is [1970-01-01], Debian 9 "Stretch"-[2016-11-03].
+# the default date is [1970-01-01], Debian 9 "Stretch"-[2016-11-03]. 
 # Sometimes it happens that the NTP server cannot be synchronized the first time.
 # To determine the relevance of the Adblock base, you must define the current
 # date and compare it to the creation date of the existing base. To do this,
@@ -45,22 +45,19 @@ while read line ; do
 addr=$line
 	i=$((i+1))
 	wget $addr --no-check-certificate -O hosts_list.$i
-	sed -i "/^[#<:!|_ ]/d" hosts_list.$i
-	sed -i "/#/d" hosts_list.$i
+	sed -i "/^[#<:!|_ .]/d" hosts_list.$i
+	sed -i "/#./d" hosts_list.$i
 	sed -i -e "s/127.0.0.1//g" hosts_list.$i
+	sed -i -e "s/0.0.0.0//g" hosts_list.$i
+	sed -i -e "s/^[\t ]\{1,8\}//g" hosts_list.$i
+	sed -i -e "s/\t\{1,8\}//g" hosts_list.$i
 	sed -i -e "s/http://g" hosts_list.$i
 	sed -i -e "s/\x2F//g" hosts_list.$i
 	sed -i -e "s/\x40//g" hosts_list.$i
 	sed -i -e "s/\x7C//g" hosts_list.$i
-	sed -i -e "s/0.0.0.1//g" hosts_list.$i
-	sed -i -e "s/0.0.0.0//g" hosts_list.$i
-	sed -i -e "s/^ //g" hosts_list.$i
-	sed -i -e "s/ * / /g" hosts_list.$i
-	sed -i -e "s/\t/ /g" hosts_list.$i
+	sed -i "/^\.com/d" hosts_list.$i
 	sed -i -e "s/^/127.0.0.1 /g" hosts_list.$i
-	sed -i -e "s/ \{2,5\}/ /g" hosts_list.$i
 cat hosts_list.$i >> $in
-#rm -rf hosts_list.$i
 done < /etc/adblock.addr
 rm -rf hosts_list.*
 

@@ -3,7 +3,7 @@ http://securemecca.com/Downloads/hosts.txt
 http://www.dshield.org/feeds/suspiciousdomains_Low.txt
 http://www.malwaredomainlist.com/hostslist/hosts.txt
 http://someonewhocares.org/hosts/hosts
-http://winhelp2002.mvps.org/hosts.txt
+#http://winhelp2002.mvps.org/hosts.txt
 http://sysctl.org/cameleon/hosts
 https://adaway.org/hosts.txt
 https://s3.amazonaws.com/lists.disconnect.me/simple_malvertising.txt
