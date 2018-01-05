@@ -16,6 +16,7 @@ _**Attention!**_ Soldering of elements is carried out by an air soldering statio
 
 **Radiator**
 The location of the fan installation on the radiator is shown in the drawing. Rework the radiator according to the drawing.
+
 ![image](https://github.com/ValCher1961/McDebian_WRT3200ACM/blob/master/hardware-mods/Radiator.png)
 
 ## 3. Fan effect
