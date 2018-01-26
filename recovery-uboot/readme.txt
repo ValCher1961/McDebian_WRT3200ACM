@@ -1,9 +1,18 @@
 Recovering U-Boot routers WRT3200ACM and WRT32X
 
-------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 uboot-wrt3200.bin	- The file U-boot is intended for the router WRT3200ACM
+			  Only for WRT320ACM with AMD NAND/Spansion (S34ML02G)
+			  Boot version : v0.0.4
+
 uboot-wrt32.bin		- The file U-boot is intended for the router WRT32X 
-------------------------------------------------------------------------
+			  Only for WRT32X with NAND Winbond and MXIC (W29N02GV)
+			  Boot version : v2.0.9
+-------------------------------------------------------------------------------
+Attention, do not try to load U-boot not intended for your chip, it can lead to
+inoperability of your router.
+Currently there is no image of U-boot router WRT3200ACM with chip Winbond/MXIC.
+-------------------------------------------------------------------------------
 
 1. To recovery the loader U-boot, copy the kwboot and file U-boot
 to any folder in your PC running Linux.
@@ -51,9 +60,3 @@ computer for a 3-second pause.
 	reset
 
 / "kwboot" taken here - https://forum.armbian.com/index.php?/topic/4444-solved-kwboot-on-armada-38x/  /
-
-
-
-
-
-
