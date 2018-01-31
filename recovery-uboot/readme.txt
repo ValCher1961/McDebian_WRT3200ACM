@@ -1,17 +1,20 @@
 Recovering U-Boot routers WRT3200ACM and WRT32X
 
 -------------------------------------------------------------------------------
-uboot-wrt3200.bin	- The file U-boot is intended for the router WRT3200ACM
-			  Only for WRT320ACM with AMD NAND/Spansion (S34ML02G)
+uboot-v004-wrt3200.bin	- The file U-boot is intended for the router WRT3200ACM
+			  Only for WRT3200ACM with NAND AMD/Spansion (S34ML02G2)
 			  Boot version : v0.0.4
 
-uboot-wrt32.bin		- The file U-boot is intended for the router WRT32X 
+uboot-v100-wrt3200.bim	- The file U-boot is intended for the router WRT3200ACM
+			  Only for WRT3200ACM with NAND Winbond/MXIC (W29N02GV)
+			  Boot version : v1.0.0
+
+uboot-v209-wrt32.bin	- The file U-boot is intended for the router WRT32X 
 			  Only for WRT32X with NAND Winbond and MXIC (W29N02GV)
 			  Boot version : v2.0.9
 -------------------------------------------------------------------------------
 Attention, do not try to load U-boot not intended for your chip, it can lead to
 inoperability of your router.
-Currently there is no image of U-boot router WRT3200ACM with chip Winbond/MXIC.
 -------------------------------------------------------------------------------
 
 1. To recovery the loader U-boot, copy the kwboot and file U-boot
@@ -49,13 +52,11 @@ computer for a 3-second pause.
 8. In the terminal, follow these commands:
 	setenv ipaddr 192.168.1.1; setenv serverip 192.168.1.99
 	nand device 0
-    for WRT3200ACM
-	tftp 8000000 uboot-wrt3200.bin
-    for WRT32X
-	tftp 8000000 uboot-wrt32.bin
+
+	tftp 8000000 uboot-vXXX-wrtNNNN.bin
 
 	nand erase.spread 0 200000
-	nand write 8000000 0 f3000
+	nand write 8000000 0 f4000
 	resetenv
 	reset
 
