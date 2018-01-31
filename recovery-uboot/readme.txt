@@ -5,7 +5,7 @@ uboot-v004-wrt3200.bin	- The file U-boot is intended for the router WRT3200ACM
 			  Only for WRT3200ACM with NAND AMD/Spansion (S34ML02G2)
 			  Boot version : v0.0.4
 
-uboot-v100-wrt3200.bim	- The file U-boot is intended for the router WRT3200ACM
+uboot-v100-wrt3200.bin	- The file U-boot is intended for the router WRT3200ACM
 			  Only for WRT3200ACM with NAND Winbond/MXIC (W29N02GV)
 			  Boot version : v1.0.0
 
