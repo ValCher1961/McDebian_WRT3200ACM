@@ -1,14 +1,17 @@
 #!/bin/bash
 
 ############ The task of temperature
-Temp_Task=75118		# 75°C CPU  (65316; 70357; 75118; .... )
-Temp_WIFI=70379		# 70°C WIFI
-Temp_DDR=60000		# 60°C DDR
-#Temp_Switch=70000	# 70°C Switch
+Temp_Task=70357		# 70°C CPU  (65316; 70357; 75118; .... )
+Temp_WIFI=45000		# 70°C WIFI (70379)
+Temp_DDR=50000		# 60°C DDR
+Temp_Switch=60000	# 70°C Switch
 
-Temp_WIFI=$((Temp_Task-Temp_WIFI))
-Temp_DDR=$((Temp_Task-Temp_DDR))
-#Temp_Switch=$((Temp_Task-Temp_Switch))
+Device=(DDR Wi-Fi Switch CPU)
+
+Temp[1]=$((Temp_Task - Temp_WIFI))
+Temp[2]=$((Temp_Task - Temp_DDR))
+Temp[3]=$((Temp_Task - Temp_Switch))
+Temp[4]=0
 
 ############ The task of factors of a regulator
 K_Prop=300	# 50...720
@@ -20,10 +23,10 @@ Temp_Previous=$Temp_Task
 ############
 while true ; do
 Temp_Current=0
-T[1]=$((Temp_DDR+`cat /sys/class/hwmon/hwmon1/temp1_input`))
-T[2]=$((Temp_WIFI+`cat /sys/class/hwmon/hwmon1/temp2_input`))
-#T[3]=$((Temp_Switch+`cat /sys/class/hwmon/hwmon3/temp1_input`))
-T[3]=`cat /sys/class/hwmon/hwmon2/temp1_input`
+T[1]=$((Temp[1] + `cat /sys/class/hwmon/hwmon1/temp1_input`))
+T[2]=$((Temp[2] + `cat /sys/class/hwmon/hwmon1/temp2_input`))
+T[3]=$((Temp[3] + `cat /sys/class/hwmon/hwmon3/temp1_input`))
+T[4]=`cat /sys/class/hwmon/hwmon2/temp1_input`
 
 
 ############ Choice of the greatest temperature
@@ -33,22 +36,23 @@ T=$((T[$i]))
 	if [ $T -gt $Temp_Current ]
 		then
 		Temp_Current=$T
+		Numb=$i
 	fi
 #printf  $T\\t
 done
 
 ############ Proportional part
-Error=$((Temp_Current-Temp_Task))
-FctrProp=$((Error/K_Prop))
+Error=$((Temp_Current - Temp_Task))
+FctrProp=$((Error / K_Prop))
 
 ############ Differential part
-FctrDif=$(((Temp_Current-Temp_Previous)/K_Dif))
+FctrDif=$(((Temp_Current - Temp_Previous) / K_Dif))
 
 ############ Reducing regulatory factor in the area of the set temperature ±0.476°C (476)
 	if [ $Error -ge -476 -a $Error -le 476 ]
 		then
-		#FctrProp=$((FctrProp/4))
-		FctrDif=$((FctrDif/3))
+		#FctrProp=$((FctrProp / 4))
+		FctrDif=$((FctrDif / 3))
 	fi
 
 FanCtrl=$((FctrProp + FctrDif + FanCtrl))
@@ -64,14 +68,13 @@ FanCtrl=$((FctrProp + FctrDif + FanCtrl))
 		else
 		Out_FanCtrl=$FanCtrl
 	fi
-	if [ $FanCtrl -lt $((K_FanOn-4)) ]
+	if [ $FanCtrl -lt $((K_FanOn - 4)) ]
 		then
-		FanCtrl=$((K_FanOn-4))
+		FanCtrl=$((K_FanOn - 4))
 	fi
-	if [ $FanCtrl -ge 255 -a $Temp_Current -ge $((Temp_Task+5000)) ]
+	if [ $FanCtrl -ge 255 -a $Temp_Current -ge $((Temp_Task + 3000)) ]
 		then
-		echo "`date`: Dangerous Temperature" >> /root/overheat.log
-		echo `sensors|grep +` >> /root/overheat.log
+		echo "`date`: High temperature "${Device[$Numb-1]}" +"$(echo "scale=1; ($Temp_Current-${Temp[$Numb]})/1000" | bc)"°C"  >> /root/overheat.log
 	fi
 
 ########### Out fan
