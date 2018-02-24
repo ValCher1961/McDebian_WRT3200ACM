@@ -1,27 +1,123 @@
-*** a/drivers/net/wireless/marvell/mwlwifi/debugfs.c	2018-01-18 12:05:37.306095512 -0300
---- b/drivers/net/wireless/marvell/mwlwifi/debugfs.c	2018-01-18 12:05:23.566545426 -0300
-***************
-*** 125,134 ****
-  			}
-  			data_p = buf + j;
-  			data_p += sprintf(data_p, "\n");
-! 			vfs_write(filp_core, buf, strlen(buf),
-  				  &filp_core->f_pos);
-  		} else
-! 			vfs_write(filp_core, valbuf, length, &filp_core->f_pos);
-  
-  		filp_close(filp_core, current->files);
-  	}
---- 125,134 ----
-  			}
-  			data_p = buf + j;
-  			data_p += sprintf(data_p, "\n");
-! 			kernel_write(filp_core, buf, strlen(buf),
-  				  &filp_core->f_pos);
-  		} else
-! 			kernel_write(filp_core, valbuf, length, &filp_core->f_pos);
-  
-  		filp_close(filp_core, current->files);
-  	}
-
-
+diff -Naur a/drivers/net/wireless/marvell/mwlwifi/debugfs.c b/drivers/net/wireless/marvell/mwlwifi/debugfs.c
+--- a/drivers/net/wireless/marvell/mwlwifi/debugfs.c	2018-02-24 11:33:27.000000000 +0300
++++ b/drivers/net/wireless/marvell/mwlwifi/debugfs.c	2018-02-24 11:24:49.000000000 +0300
+@@ -279,7 +279,6 @@
+ 			   u32 append, u32 totallen, bool textmode)
+ {
+ 	struct file *filp_core = NULL;
+-	mm_segment_t oldfs;
+ 	char file_name[40];
+ 	u8 *buf = kmalloc(length * 3, GFP_KERNEL);
+ 	u8 *data_p = buf;
+@@ -292,9 +291,6 @@
+ 	sprintf(file_name, "/dev/shm/coredump-%x-%x",
+ 		region, (region + totallen));
+ 
+-	oldfs = get_fs();
+-	set_fs(KERNEL_DS);
+-
+ 	if (append)
+ 		filp_core = filp_open(file_name, O_RDWR | O_APPEND, 0);
+ 	else
+@@ -317,15 +313,15 @@
+ 			}
+ 			data_p = buf + j;
+ 			data_p += sprintf(data_p, "\n");
+-			vfs_write(filp_core, buf, strlen(buf),
+-				  &filp_core->f_pos);
++			kernel_write(filp_core, buf, strlen(buf),
++				     &filp_core->f_pos);
+ 		} else
+-			vfs_write(filp_core, valbuf, length, &filp_core->f_pos);
++			kernel_write(filp_core, valbuf, length,
++				     &filp_core->f_pos);
+ 
+ 		filp_close(filp_core, current->files);
+ 	}
+ 
+-	set_fs(oldfs);
+ 	kfree(buf);
+ }
+ 
+@@ -1087,7 +1083,7 @@
+ 	struct ieee80211_sta *sta;
+ 	u8 addr[ETH_ALEN];
+ 	int table_size = (sizeof(__le32) * 2 * SYSADPT_MAX_RATE_ADAPT_RATES);
+-	u8 *rate_table, *rate_idx;
++	u8 *rate_table;
+ 	u32 rate_info;
+ 	u8 fmt, stbc, bw, sgi, mcs, preamble_gf, power_id, ldpc, bf, ant;
+ 	int idx, rate, nss;
+@@ -1131,8 +1127,7 @@
+ 		"Num", "Fmt", "STBC", "BW", "SGI", "Nss", "RateId",
+ 		"GF/Pre", "PId", "LDPC", "BF", "TxAnt", "Rate");
+ 	idx = 0;
+-	rate_idx = rate_table;
+-	rate_info = le32_to_cpu(*(__le32 *)rate_idx);
++	rate_info = le32_to_cpu(*(__le32 *)rate_table);
+ 	while (rate_info) {
+ 		fmt = rate_info & MWL_TX_RATE_FORMAT_MASK;
+ 		stbc = (rate_info & MWL_TX_RATE_STBC_MASK) >>
+@@ -1179,8 +1174,8 @@
+ 			utils_get_phy_rate(fmt, bw, sgi, mcs));
+ 
+ 		idx++;
+-		rate_idx += (2 * sizeof(__le32));
+-		rate_info = le32_to_cpu(*(__le32 *)rate_idx);
++		rate_table += (2 * sizeof(__le32));
++		rate_info = le32_to_cpu(*(__le32 *)rate_table);
+ 	}
+ 	len += scnprintf(p + len, size - len, "\n");
+ 
+@@ -1339,7 +1334,6 @@
+ 	u8 bmap0flag, nobaflag;
+ 	char buff[500], file_location[20];
+ 	struct file *filp_bahisto;
+-	mm_segment_t oldfs;
+ 	u8 *data_p = buff;
+ 	ssize_t ret;
+ 
+@@ -1355,13 +1349,10 @@
+ 	memset(file_location, 0, sizeof(file_location));
+ 	sprintf(file_location, "/tmp/ba_histo-%d", priv->ba_aid);
+ 
+-	oldfs = get_fs();
+-	set_fs(KERNEL_DS);
+ 	filp_bahisto = filp_open(file_location,
+ 				 O_RDWR | O_CREAT | O_TRUNC, 0);
+ 
+ 	if (IS_ERR(filp_bahisto)) {
+-		set_fs(oldfs);
+ 		ret = -EIO;
+ 		goto err;
+ 	}
+@@ -1402,8 +1393,8 @@
+ 
+ 			/* Buffer is full. Write to file and reset buf */
+ 			if ((strlen(buff) + 36) >= 500) {
+-				vfs_write(filp_bahisto, buff, strlen(buff),
+-					  &filp_bahisto->f_pos);
++				kernel_write(filp_bahisto, buff, strlen(buff),
++					     &filp_bahisto->f_pos);
+ 				mdelay(2);
+ 				memset(buff, 0, sizeof(buff));
+ 				data_p = buff;
+@@ -1427,8 +1418,8 @@
+ 				data_p += sprintf(data_p, "%8d\n", nobaflag);
+ 		}
+ 
+-		vfs_write(filp_bahisto, buff, strlen(buff),
+-			  &filp_bahisto->f_pos);
++		kernel_write(filp_bahisto, buff, strlen(buff),
++			     &filp_bahisto->f_pos);
+ 		len += scnprintf(p + len, size - len,
+ 				 "hole: %d, expect: %d, bmap0: %d, noba: %d\n",
+ 				 baholecnt, baexpcnt, bmap0cnt, nobacnt);
+@@ -1441,7 +1432,6 @@
+ 				 priv->ba_aid);
+ 
+ 	filp_close(filp_bahisto, current->files);
+-	set_fs(oldfs);
+ 
+ 	ret = simple_read_from_buffer(ubuf, count, ppos, p, len);
+ 
