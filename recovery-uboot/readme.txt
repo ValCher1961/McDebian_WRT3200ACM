@@ -58,3 +58,6 @@ computer for a 3-second pause.
 	reset
 
 / "kwboot" taken here - https://forum.armbian.com/index.php?/topic/4444-solved-kwboot-on-armada-38x/  /
+* - Instead of TFTP-server, you can use an external drive -
+    https://github.com/ValCher1961/McDebian_WRT3200ACM/wiki/%23-Using-external-drives-in-U-Boot
+	
