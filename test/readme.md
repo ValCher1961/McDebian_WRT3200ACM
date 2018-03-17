@@ -18,7 +18,7 @@ tar xvf rootfs-armhf-stretch.tar.gz
 
 3. Load kernel-xxxxx into the root of the disk and rename it.
 ```
-wget https://github.com/ValCher1961/McDebian_WRT3200ACM/tree/master/test/kernel-xxxxx
+wget https://raw.githubusercontent.com/ValCher1961/McDebian_WRT3200ACM/master/test/kernel-xxxxx
 mv ./kernel-xxxxx ./kernel
 ```
 4. Connect the external drive to the USB2/ESATA router slot and connect the serial cable. 
