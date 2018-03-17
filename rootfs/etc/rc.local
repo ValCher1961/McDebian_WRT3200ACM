@@ -15,7 +15,9 @@ depmod -a
 
 echo 1 > /sys/class/leds/rango:white:usb2/ports/usb1-port1
 echo 1 > /sys/class/leds/rango:white:usb3_1/ports/usb2-port1
-echo 16384 > /proc/sys/vm/min_free_kbytes
-sleep 20 ; /etc/upd-adblock #; /etc/upd-oinkmaster
+echo netdev > /sys/class/leds/rango:white:wan/trigger
+echo wan > /sys/class/leds/rango:white:wan/device_name
+echo 1 > /sys/class/leds/rango:white:wan/rx
+echo 1 > /sys/class/leds/rango:white:wan/tx
 
 exit 0

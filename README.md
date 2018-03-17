@@ -2,6 +2,8 @@
 For installation and use on wrt3200acm Debian.
 ![image](https://github.com/ValCher1961/McDebian_WRT3200ACM/blob/master/debian.png)
 
+* 18.03.2018 Added patch for LED activity of network devices and updated Kernel
+
 * 17.03.2018 Test kernel to boot from an external drive for WRT3200ACM and WRT32X
 
 * 24.02.2018 Update [patch.vfs_write](https://github.com/hauke/mwlwifi/commit/eac34911c6f5ff2e7e6e4ecd41c5dd10f97bd4ce)
