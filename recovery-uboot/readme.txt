@@ -30,15 +30,7 @@ to determine the sequence number of the initialized adapter
 ttyUSB<N> (N = 0,1, ...) and set the access rights of -
 	chmod 666 /dev/ttyUSB<N>
 
-4. Set the wired LAN-port of your PC to static IP 
-(for example, 192.168.1.99).
-
-5. Connect the Ethernet cable between your computer and any LAN
-router port.
-
-6. Run TFPT-Server on the PC.
-
-7. Execute the command -
+4. Execute the command -
 	sudo ./kwboot -f -t /dev/ttyUSB<N> -b uboot-vXXX-wrt32NN.bin -B 115200 -p
 and turn on the power router.
 After the power is on the router and before the load starts,
@@ -47,18 +39,32 @@ When the download is complete, the router will be automatically
 overloaded. To log on to the U-boot system, press any key on your
 computer for a 3-second pause.
 
-8. In the terminal, follow these commands:
+5. There are two possible options for loading the U-boot file into the memory
+of the router, using the TFPT server or from the external USB Flash storage
+connected to the USB2/eSATA connector.
+
+Option A. (TFPT)
+  A.1. Set the wired LAN-Port of your PC to static IP (for example, 192.168.1.99).
+  A.2. Connect the Ethernet cable between yours computer and any LANRouter port
+  and run TFPT-Server on the PC.
+  A.3. In the terminal, following these commands -
 	setenv ipaddr 192.168.1.1; setenv serverip 192.168.1.99
+	tftp 0x8000000 uboot-vXXX-wrt32NN.bin
+
+Option B. (USB)
+  B.1. Format the USB Flash storage to the EXT4 type and copy the
+  uboot-vXXX-wrt32NN.bin file to the root.
+  B.2. Insert the USB Flash storage into the USB2/eSATA connector of the router.
+  B.2. In the terminal, following these commands -
+	usb reset
+	ext4load 0:1 0x8000000 uboot-vXXX-wrt32NN.bin
+
+6. After loading the image of the U-boot file into the memory of the router,
+run the following commands -
 	nand device 0
-
-	tftp 8000000 uboot-vXXX-wrt32NN.bin
-
-	nand erase.spread 0 200000
-	nand write 8000000 0 f4000
+	nand erase.spread 0 0x200000
+	nand write 0x8000000 0 0xf4000
 	resetenv
 	reset
 
 / "kwboot" taken here - https://forum.armbian.com/index.php?/topic/4444-solved-kwboot-on-armada-38x/  /
-* - Instead of TFTP-server, you can use an external drive -
-    https://github.com/ValCher1961/McDebian_WRT3200ACM/wiki/%23-Using-external-drives-in-U-Boot
-	
