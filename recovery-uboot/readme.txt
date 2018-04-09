@@ -40,13 +40,13 @@ overloaded. To log on to the U-boot system, press any key on your
 computer for a 3-second pause.
 
 5. There are two possible options for loading the U-boot file into the memory
-of the router, using the TFPT server or from the external USB Flash storage
+of the router, using the TFTP server or from the external USB Flash storage
 connected to the USB2/eSATA connector.
 
-Option A. (TFPT)
+Option A. (TFTP)
   A.1. Set the wired LAN-Port of your PC to static IP (for example, 192.168.1.99).
   A.2. Connect the Ethernet cable between yours computer and any LANRouter port
-  and run TFPT-Server on the PC.
+  and run TFTP-Server on the PC.
   A.3. In the terminal, following these commands -
 	setenv ipaddr 192.168.1.1; setenv serverip 192.168.1.99
 	tftp 0x8000000 uboot-vXXX-wrt32NN.bin
