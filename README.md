@@ -2,6 +2,8 @@
 For installation and use on wrt3200acm Debian.
 ![image](https://github.com/ValCher1961/McDebian_WRT3200ACM/blob/master/debian.png)
 
+* 17.04.2018 Added venom.dts
+
 * 18.03.2018 Added patch for LED activity of network devices and updated Kernel
 
 * 17.03.2018 Test kernel to boot from an external drive for WRT3200ACM and WRT32X
