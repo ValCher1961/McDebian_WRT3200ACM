@@ -8,7 +8,10 @@ Since now the location of the kernel is not limited by the size of the selected 
 
 **So, let's get started.**
 
-1. Mark the media to the number of partitions you need and format the first partition in EXT4. 
+1. Mark the media to the number of partitions you need and format the first partition in EXT4.
+```
+mkfs.ext4 -O ^64bit /dev/sd<X>1
+```
 Download and unzip in the first section rootfs-armhf-stretch.tar.gz
 ```
 wget --no-check-certificate https://www.dropbox.com/s/j4tmtrjb6yhcalu/rootfs-armhf-stretch.tar.gz
