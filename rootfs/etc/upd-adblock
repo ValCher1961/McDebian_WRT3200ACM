@@ -70,7 +70,7 @@ echo "#/ip dns static" > $out && cat $in  \
 
 ### Removing from Blacklist database the Whitelist data
 while read line ; do
-line = "127.0.0.1 " + $line
+#line="127.0.0.1 "$line
 	sed "/$line/d" $out > "/etc/adblock.tmp"
 	mv /etc/adblock.tmp $out
 done < /etc/adblock.whitelist
