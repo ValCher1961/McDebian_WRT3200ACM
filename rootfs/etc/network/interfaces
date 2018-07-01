@@ -1,51 +1,31 @@
-# interfaces(5) file used by ifup(8) and ifdown(8)
-# Include files from /etc/network/interfaces.d:
+# interfaces(5) file used by ifup(8) and ifdown(8) Include files from /etc/network/interfaces.d:
 source-directory /etc/network/interfaces.d
 
-auto lo
-iface lo inet loopback
-	post-up ifconfig lo txqueuelen 1000
+auto lo eth1 wan
+allow-hotplug lan1 lan2 lan3 lan4 wlp1s0 wlp2s0 tun0 br-lan
 
-allow-hotplug eth1
-	iface eth1 inet static
-	address 0.0.0.0
-	post-up ifconfig eth1 txqueuelen 1000
-	post-up ethtool -K eth1 gro off
+	iface lo inet loopback
 
-allow-hotplug lan1
+	iface wan inet dhcp
+	hwaddress ether 11:22:33:44:55:66
+#	post-up ethtool -K wan gro off gso off
+
+	iface eth1 inet manual
+	post-up ip link set eth1 txqueuelen 1000
+#	post-up ip link set tun0 txqueuelen 1000
+
 	iface lan1 inet manual
-allow-hotplug lan2
 	iface lan2 inet manual
-allow-hotplug lan3
 	iface lan3 inet manual
-allow-hotplug lan4
 	iface lan4 inet manual
 
-allow-hotplug wlan0
-	iface wlan0 inet manual
-#	hostapd /etc/hostapd/wlan0.conf
+	iface wlp1s0 inet manual
+	iface wlp2s0 inet manual
 
-allow-hotplug wlan1
-	iface wlan1 inet manual
-#	hostapd /etc/hostapd/wlan1.conf
-
-#allow-hotplug mlan0
-#	iface mlan0 inet manual
-#	hostapd /etc/hostapd/mlan0.conf
-
-#auto br-lan
-allow-hotplug br-lan
 	iface br-lan inet static
-	bridge_ports eth1 lan1 lan2 lan3 lan4 wlan0 wlan1
+	bridge_ports lan1 lan2 lan3 lan4 wlp1s0 wlp2s0
 	address 192.168.1.1
 	netmask 255.255.255.0
 	network 192.168.1.0
 	broadcast 192.168.1.255
-	post-up ethtool -K br-lan gro off
-
-#auto wan
-allow-hotplug wan
-	iface wan inet dhcp
-	hwaddress ether 11:22:33:44:55:66
-	post-up ethtool -K wan gro off gso off
 	post-up /etc/iptables
