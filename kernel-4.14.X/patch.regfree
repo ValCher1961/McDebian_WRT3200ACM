@@ -1,22 +1,20 @@
 diff -Naur a/drivers/net/wireless/marvell/mwlwifi/core.c b/drivers/net/wireless/marvell/mwlwifi/core.c
---- a/drivers/net/wireless/marvell/mwlwifi/core.c	2018-06-14 18:48:41.000000000 +0300
-+++ b/drivers/net/wireless/marvell/mwlwifi/core.c	2018-06-14 19:07:48.707305617 +0300
-@@ -807,11 +807,7 @@
- 	if (priv->chip_type == MWL8997)
- 		mwl_fwcmd_set_cfg_data(hw, 2);
+--- a/drivers/net/wireless/marvell/mwlwifi/core.c	2018-08-14 21:08:17.000000000 +0300
++++ b/drivers/net/wireless/marvell/mwlwifi/core.c	2018-08-15 22:56:58.010441369 +0300
+@@ -827,10 +827,6 @@
+ 		mwl_fwcmd_get_txpwrlmt_cfg_data(hw);
+ 	}
  
 -	if (priv->chip_type == MWL8964)
 -		rc = mwl_fwcmd_get_fw_region_code_sc4(hw,
 -						      &priv->fw_region_code);
 -	else
--		rc = mwl_fwcmd_get_fw_region_code(hw, &priv->fw_region_code);
-+	rc = mwl_fwcmd_get_fw_region_code(hw, &priv->fw_region_code);
+ 		rc = mwl_fwcmd_get_fw_region_code(hw, &priv->fw_region_code);
  	if (!rc) {
  		priv->fw_device_pwrtbl = true;
- 		mwl_regd_init(priv);
 diff -Naur a/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.c b/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.c
---- a/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.c	2018-06-14 18:48:41.000000000 +0300
-+++ b/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.c	2018-06-14 19:07:48.707305617 +0300
+--- a/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.c	2018-08-14 21:08:17.000000000 +0300
++++ b/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.c	2018-08-15 22:47:36.793621385 +0300
 @@ -93,7 +93,6 @@
  		{ HOSTCMD_CMD_GET_DEVICE_PWR_TBL, "GetDevicePwrTbl" },
  		{ HOSTCMD_CMD_SET_RATE_DROP, "SetRateDrop" },
@@ -25,14 +23,10 @@ diff -Naur a/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.c b/drivers/net/wire
  		{ HOSTCMD_CMD_GET_DEVICE_PWR_TBL_SC4, "GetDevicePwrTblSC4" },
  		{ HOSTCMD_CMD_QUIET_MODE, "QuietMode" },
  		{ HOSTCMD_CMD_CORE_DUMP_DIAG_MODE, "CoreDumpDiagMode" },
-@@ -3342,43 +3341,6 @@
+@@ -3386,42 +3385,6 @@
+ }
  
- 	mutex_unlock(&priv->fwcmd_mutex);
  
--	return 0;
--}
--
--
 -int mwl_fwcmd_get_fw_region_code_sc4(struct ieee80211_hw *hw,
 -				     u32 *fw_region_code)
 -{
@@ -49,7 +43,7 @@ diff -Naur a/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.c b/drivers/net/wire
 -	pcmd->cmd_hdr.cmd = cpu_to_le16(cmd);
 -	pcmd->cmd_hdr.len = cpu_to_le16(sizeof(*pcmd));
 -
--	if (mwl_hif_exec_cmd(priv->hw, cmd)) {
+-	if (mwl_hif_exec_cmd(hw, cmd)) {
 -		mutex_unlock(&priv->fwcmd_mutex);
 -		return -EIO;
 -	}
@@ -66,12 +60,15 @@ diff -Naur a/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.c b/drivers/net/wire
 -
 -	mutex_unlock(&priv->fwcmd_mutex);
 -
- 	return 0;
- }
- 
+-	return 0;
+-}
+-
+ int mwl_fwcmd_get_pwr_tbl_sc4(struct ieee80211_hw *hw,
+ 			      struct mwl_device_pwr_tbl *device_ch_pwrtbl,
+ 			      u8 *region_code,
 diff -Naur a/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.h b/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.h
---- a/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.h	2018-06-14 18:48:41.000000000 +0300
-+++ b/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.h	2018-06-14 19:07:48.707305617 +0300
+--- a/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.h	2018-08-14 21:08:17.000000000 +0300
++++ b/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.h	2018-08-15 22:50:32.952994471 +0300
 @@ -251,9 +251,6 @@
  
  int mwl_fwcmd_newdp_dmathread_start(struct ieee80211_hw *hw);
@@ -83,8 +80,8 @@ diff -Naur a/drivers/net/wireless/marvell/mwlwifi/hif/fwcmd.h b/drivers/net/wire
  			      struct mwl_device_pwr_tbl *device_ch_pwrtbl,
  			      u8 *region_code,
 diff -Naur a/drivers/net/wireless/marvell/mwlwifi/hif/hostcmd.h b/drivers/net/wireless/marvell/mwlwifi/hif/hostcmd.h
---- a/drivers/net/wireless/marvell/mwlwifi/hif/hostcmd.h	2018-06-14 18:48:41.000000000 +0300
-+++ b/drivers/net/wireless/marvell/mwlwifi/hif/hostcmd.h	2018-06-14 19:07:48.717302185 +0300
+--- a/drivers/net/wireless/marvell/mwlwifi/hif/hostcmd.h	2018-08-14 21:08:17.000000000 +0300
++++ b/drivers/net/wireless/marvell/mwlwifi/hif/hostcmd.h	2018-08-15 22:36:10.699776335 +0300
 @@ -72,7 +72,6 @@
  #define HOSTCMD_CMD_GET_DEVICE_PWR_TBL          0x116B
  #define HOSTCMD_CMD_SET_RATE_DROP               0x1172
@@ -93,7 +90,7 @@ diff -Naur a/drivers/net/wireless/marvell/mwlwifi/hif/hostcmd.h b/drivers/net/wi
  #define HOSTCMD_CMD_GET_DEVICE_PWR_TBL_SC4      0x118B
  #define HOSTCMD_CMD_QUIET_MODE                  0x1201
  #define HOSTCMD_CMD_CORE_DUMP_DIAG_MODE         0x1202
-@@ -1094,13 +1093,6 @@
+@@ -1095,13 +1094,6 @@
  	struct hostcmd_header cmd_hdr;
  } __packed;
  
