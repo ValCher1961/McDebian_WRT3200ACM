@@ -56,7 +56,7 @@ Option B. (USB)
 	mkfs.ext4 -O ^64bit /dev/sdX
   and copy the uboot-vXXX-wrt32NN.bin file to the root.
   B.2. Insert the USB Flash storage into the USB2/eSATA connector of the router.
-  B.2. In the terminal, following these commands -
+  B.3. In the terminal, following these commands -
 	usb reset
 	ext4load 0:1 0x8000000 uboot-vXXX-wrt32NN.bin
 
