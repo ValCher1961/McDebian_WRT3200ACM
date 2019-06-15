@@ -45,17 +45,26 @@ while read line ; do
 addr=$line
 	i=$((i+1))
 	wget $addr --no-check-certificate -O hosts_list.$i
-	sed -i "/^[#<:!|_ .]/d" hosts_list.$i
-	sed -i "/#./d" hosts_list.$i
-	sed -i -e "s/127.0.0.1//g" hosts_list.$i
-	sed -i -e "s/0.0.0.0//g" hosts_list.$i
-	sed -i -e "s/^[\t ]\{1,8\}//g" hosts_list.$i
-	sed -i -e "s/\t\{1,8\}//g" hosts_list.$i
-	sed -i -e "s/http://g" hosts_list.$i
-	sed -i -e "s/\x2F//g" hosts_list.$i
-	sed -i -e "s/\x40//g" hosts_list.$i
-	sed -i -e "s/\x7C//g" hosts_list.$i
-	sed -i "/^\.com/d" hosts_list.$i
+	sed -i "/^[#<:!_ .]/d" hosts_list.$i		#search '#<:!_ .' del
+	sed -i "/#./d" hosts_list.$i			#search '#.'  del
+	sed -i "/\x22/d" hosts_list.$i                  #search '"'   del
+	sed -i "/\x28/d" hosts_list.$i			#search '('   del
+	sed -i "/\x29/d" hosts_list.$i			#search ')'   del
+	sed -i "/\x7B/d" hosts_list.$i			#search '{'   del
+	sed -i "/\x7D/d" hosts_list.$i			#search '}'   del
+	sed -i -e "s/||//g" hosts_list.$i		#search '||' replace ''
+	sed -i -e "s/\^//g" hosts_list.$i		#search '^' replace ''
+	sed -i -e "s/,/\n/g" hosts_list.$i		#search ',' replace '\n'
+	sed -i -e "s/127.0.0.1//g" hosts_list.$i	#search '127.0.0.0' replace ''
+	sed -i -e "s/0.0.0.0//g" hosts_list.$i		#search '0.0.0.0' replace ''
+	sed -i -e "s/^[\t ]\{1,8\}//g" hosts_list.$i	#search 'tab' - '1...8' replace ''
+	sed -i -e "s/\t\{1,8\}//g" hosts_list.$i	#search 'tab' - '1...8' replace ''
+	sed -i -e "s/https://g" hosts_list.$i		#search 'https:' replace ''
+	sed -i -e "s/http://g" hosts_list.$i		#search 'http:' replace ''
+	sed -i -e "s/\x2F//g" hosts_list.$i		#search '/' replace ''
+	sed -i -e "s/\x40//g" hosts_list.$i		#search '@' replace ''
+	sed -i -e "s/\x7C//g" hosts_list.$i		#search "|" replace ''
+#	sed -i "/^\.com/d" hosts_list.$i
 	sed -i -e "s/^/127.0.0.1 /g" hosts_list.$i
 cat hosts_list.$i >> $in
 done < /etc/adblock.addr
@@ -63,7 +72,6 @@ rm -rf hosts_list.*
 
 echo "#/ip dns static" > $out && cat $in  \
 	| grep -v '^#' \
-	| grep . \
 	| tr -d '\r' \
 	| sed '$!N; /^\(.*\)\n\1$/!P; D' \
 	| sort -u  >> $out && rm -f $in
@@ -71,13 +79,17 @@ echo "#/ip dns static" > $out && cat $in  \
 ### Removing from Blacklist database the Whitelist data
 while read line ; do
 #line="127.0.0.1 "$line
-	sed "/$line/d" $out > "/etc/adblock.tmp"
+echo $line
+	sed  "/$line/d" $out > /etc/adblock.tmp
 	mv /etc/adblock.tmp $out
 done < /etc/adblock.whitelist
-rm -f /etc/adblock.tmp
 
 wc -l $out
 ### Restart service DNSMASQ
 /etc/init.d/dnsmasq restart
 
 echo 0 > /sys/class/leds/rango:amber:wan/brightness
+echo netdev > /sys/class/leds/rango:amber:wan/trigger
+echo tap0 > /sys/class/leds/rango:amber:wan/device_name
+echo 1 > /sys/class/leds/rango:amber:wan/rx
+echo 1 > /sys/class/leds/rango:amber:wan/tx

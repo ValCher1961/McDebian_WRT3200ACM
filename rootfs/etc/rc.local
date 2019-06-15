@@ -11,18 +11,19 @@
 #
 # By default this script does nothing.
 
+#mkdir /var/run/pulse
+#chown -R pulse:pulse-access /var/run/pulse
 depmod -a
 
-echo 1 > /sys/class/leds/rango:white:usb2/ports/usb1-port1
+echo 1 > /sys/class/leds/rango:white:usb2/ports/usb3-port1
 echo 1 > /sys/class/leds/rango:white:usb3_1/ports/usb2-port1
 echo wan > /sys/class/leds/rango:white:wan/device_name
 echo 1 > /sys/class/leds/rango:white:wan/rx
 echo 1 > /sys/class/leds/rango:white:wan/tx
 echo 1 > /sys/class/leds/rango:white:wan/link
-# echo tun0 > /sys/class/leds/rango:amber:wan/device_name
-# echo 1 > /sys/class/leds/rango:amber:wan/rx
-# echo 1 > /sys/class/leds/rango:amber:wan/tx
+echo tap0 > /sys/class/leds/rango:amber:wan/device_name
+echo 1 > /sys/class/leds/rango:amber:wan/rx
+echo 1 > /sys/class/leds/rango:amber:wan/tx
 
-# /etc/upd-oinkmaster
-
+/etc/irq
 exit 0

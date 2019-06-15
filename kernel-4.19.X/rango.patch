@@ -1,0 +1,94 @@
+diff -Naur a/arch/arm/boot/dts/armada-385-linksys.dtsi b/arch/arm/boot/dts/armada-385-linksys.dtsi
+--- a/arch/arm/boot/dts/armada-385-linksys.dtsi	2018-12-05 21:32:14.000000000 +0300
++++ b/arch/arm/boot/dts/armada-385-linksys.dtsi	2018-12-08 18:05:17.681879142 +0300
+@@ -130,10 +130,11 @@
+ 		reg = <0x4c>;
+ 	};
+ 
+-	expander0: pca9635@68 {
++	expander0: tlc59116@68 {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-		compatible = "nxp,pca9635";
++		#gpio-cells = <2>;
++		compatible = "ti,tlc59116";
+ 		reg = <0x68>;
+ 	};
+ };
+diff -Naur a/arch/arm/boot/dts/armada-385-linksys-rango.dts b/arch/arm/boot/dts/armada-385-linksys-rango.dts
+--- a/arch/arm/boot/dts/armada-385-linksys-rango.dts	2018-12-05 21:32:14.000000000 +0300
++++ b/arch/arm/boot/dts/armada-385-linksys-rango.dts	2018-12-08 17:46:10.000000000 +0300
+@@ -14,27 +14,44 @@
+ 	model = "Linksys WRT3200ACM";
+ 	compatible = "linksys,rango", "linksys,armada385", "marvell,armada385",
+ 		     "marvell,armada380";
++
++	pwm_fan {
++		/* SUNON HA4010V4-0000-C99 */
++		compatible = "pwm-fan";
++		pwms = <&gpio0 18 4000 0>;
++	};
++};
++
++&pinctrl {
++	gpio_fan_pin: gpio-fan-pin {
++		marvell,pins = "mpp18";
++		marvell,function = "gpio";
++	};
+ };
+ 
+ &expander0 {
+ 	wan_amber@0 {
+ 		label = "rango:amber:wan";
+ 		reg = <0x0>;
++		linux,default-trigger = "netdev";
+ 	};
+ 
+ 	wan_white@1 {
+ 		label = "rango:white:wan";
+ 		reg = <0x1>;
++		linux,default-trigger = "netdev";
+ 	};
+ 
+ 	usb2@5 {
+ 		label = "rango:white:usb2";
+ 		reg = <0x5>;
++		linux,default-trigger = "usbport";
+ 	};
+ 
+ 	usb3_1@6 {
+ 		label = "rango:white:usb3_1";
+ 		reg = <0x6>;
++		linux,default-trigger = "usbport";
+ 	};
+ 
+ 	usb3_2@7 {
+@@ -80,7 +97,7 @@
+ };
+ 
+ &nand {
+-	/* AMD/Spansion S34ML02G2 256MiB, OEM Layout */
++	/* AMD/Spansion S34ML02G2, MXIC/Winbond W29N02GV, 256MiB */
+ 	partitions {
+ 		compatible = "fixed-partitions";
+ 		#address-cells = <1>;
+@@ -174,3 +191,19 @@
+ &usb3_1_vbus_pins {
+ 	marvell,pins = "mpp44";
+ };
++
++&pcie1 {
++	/* Marvell 88W8964, 5GHz-only */
++	mwlwifi {
++		marvell,2ghz = <0>;
++		marvell,chainmask = <4 4>;
++	};
++};
++
++&pcie2 {
++	/* Marvell 88W8964, 2GHz-only */
++	mwlwifi {
++		marvell,5ghz = <0>;
++		marvell,chainmask = <4 4>;
++	};
++};

@@ -1,0 +1,8 @@
+#!/bin/bash
+names=(mv64xxx_i2c sata mmc0 usb2)
+for ((i=0; i<${#names[*]}; i++)); do
+	stringZ=`cat /proc/interrupts|grep ${names[$i]}`
+	irq_number=${stringZ:0:3}
+	irq_number=`echo $irq_number` #delete space
+	echo 2 > /proc/irq/$irq_number/smp_affinity
+done

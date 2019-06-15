@@ -1,5 +1,0 @@
-# Aliases extracted from modules themselves.
-alias pci:v00001B4Bd00002B42sv*sd*bc*sc*i* mwlwifi
-alias pci:v000011ABd00002B40sv*sd*bc*sc*i* mwlwifi
-alias pci:v000011ABd00002B38sv*sd*bc*sc*i* mwlwifi
-alias pci:v000011ABd00002A55sv*sd*bc*sc*i* mwlwifi

@@ -2,6 +2,8 @@
 For installation and use on wrt3200acm Debian.
 ![image](https://github.com/ValCher1961/McDebian_WRT3200ACM/blob/master/debian.png)
 
+* 15.06.2019 Kernel-4.19.X. WRT3200ACM kernel boot from external disk
+
 * 01.07.2018 Minor updates
 
 * 17.04.2018 Added venom.dts

@@ -3,15 +3,19 @@
 echo "1" > /proc/sys/net/ipv4/ip_dynaddr
 echo "1" > /proc/sys/net/ipv4/ip_forward
 
- modprobe tun
+ modprobe tap
  modprobe iptable_nat
  modprobe br_netfilter
  modprobe ip_gre
  modprobe nf_nat_proto_gre
  modprobe nf_conntrack
+ modprobe ip_tables
+ modprobe iptable_filter
+ modprobe iptable_mangle
+
 
 i=1
-while [ $i -le 4 ] ; do
+while [ $i -le 8 ] ; do
 
 WAN=wan
 WAN_IP=$(ip addr show wan |sed -n '/inet /s/^[^.]* \([0-9\.]*\).*/\1/gp')
@@ -21,6 +25,7 @@ if [ -n "$WAN_IP" ]
 	then	break
 	else	ifdown wan && ifup wan
 		sleep $pause
+echo "Check the cable connection in the socket WAN router."
 fi
 done
 
@@ -28,9 +33,9 @@ LAN=br-lan
 LAN_IP=$(ip addr show br-lan |sed -n '/inet /s/^[^.]* \([0-9\.]*\).*/\1/gp')
 LAN_RG=$LAN_IP"/24"
 
-TUN=tun0
-TUN_IP=$(ip addr show tun0 |sed -n '/inet /s/^[^.]* \([0-9\.]*\).*/\1/gp')
-TUN_RG=$TUN_IP"/24"
+#TUN=tap0
+#TUN_IP=$(ip addr show tap0 |sed -n '/inet /s/^[^.]* \([0-9\.]*\).*/\1/gp')
+#TUN_RG=$TUN_IP"/24"
 
 NAS_IP=192.168.1.100
 
@@ -65,9 +70,10 @@ iptables -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 iptables -A PREROUTING -t raw -m rpfilter --invert -j DROP
 ip6tables -A PREROUTING -t raw -m rpfilter --invert -j DROP
 #
-# iptables -A INPUT --protocol tcp --dport 1194 -j ACCEPT
-iptables -A INPUT -i $TUN -p tcp --dport 22 -j ACCEPT
-iptables -t nat -A PREROUTING -p tcp -i $TUN --dport 22 -j DNAT --to-destination $LAN_IP:22
+iptables -A INPUT --protocol tcp --dport 1194 -j ACCEPT
+iptables -A INPUT -i tap0 -j ACCEPT
+#iptables -A INPUT -i $TUN -p tcp --dport 22 -j ACCEPT
+#iptables -t nat -A PREROUTING -p tcp -i $TUN --dport 22 -j DNAT --to-destination $LAN_IP:22
 
 
 #INVALID
@@ -84,7 +90,7 @@ iptables -A FORWARD -i $WAN -o $LAN -j REJECT
 
 #
 iptables -t nat -A POSTROUTING -s $LAN_RG -o $WAN -j MASQUERADE
-iptables -t nat -A POSTROUTING -s $TUN_RG -o $WAN -j MASQUERADE
+#iptables -t nat -A POSTROUTING -s $TUN_RG -o $WAN -j MASQUERADE
 
 # Opening and redirection ports on your router for NAS
 
@@ -92,9 +98,9 @@ iptables -t nat -A POSTROUTING -s $TUN_RG -o $WAN -j MASQUERADE
 # PortInt - port internal
 # Prtcl - protocol
 
-PortExt=(6881	6881	6882)
-PortInt=(6881	6881	6882)
-Prtcl=(tcp	udp	tcp)
+PortExt=(6881	6881	6882	6883)
+PortInt=(6881	6881	6882	6883)
+Prtcl=(tcp	udp	tcp	tcp)
 
 #
 printf "The open ports for -"\\t$NAS_IP\\n
