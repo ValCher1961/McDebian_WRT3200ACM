@@ -37,8 +37,7 @@ cp -rf ./kernel /dev/sda2
 ```
 5. Connect the external drive to the USB2/ESATA router slot and connect the serial cable. 
 
-6. Turn on the router and enter the U-boot to change the nandboot and altnandboot variables. 
-In the depending of media type, run the following commands:
+6. Turn on the router and login U-boot to change the nandboot and altnandboot variables. Depending on the type of media, run the following commands:
 
  For USB
 ```
